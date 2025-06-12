@@ -8,12 +8,12 @@ from io import BytesIO
 import base64
 import uuid
 
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
+
 # Define the images directory
 IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 os.makedirs(IMAGES_DIR, exist_ok=True)
-
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
 
 # Helper function: Remove red filter
 def set_color(im, color_amount, color):
@@ -295,5 +295,6 @@ def process_image():
         print(f"Unexpected error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
