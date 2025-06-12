@@ -1,10 +1,7 @@
 
-import React from 'react';
 import { ThemeToggle } from './ThemeToggle';
-import { Sparkles, Github, Linkedin, Mail } from 'lucide-react';
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from './ui/navigation-menu';
-import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from './ui/navigation-menu';
 
 export function Header() {
   const scrollToContact = () => {
@@ -36,7 +33,6 @@ export function Header() {
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger>More Apps</NavigationMenuTrigger>
                 <NavigationMenuContent className="w-[95vw] md:w-[400px] lg:w-[500px]">
                   <ul className="grid gap-3 p-4 md:grid-cols-2">
                     <li className="row-span-3 col-span-1">
@@ -46,7 +42,7 @@ export function Header() {
                           href="#"
                         >
                           <div className="mt-4 mb-2 text-lg font-medium text-white">
-                            Image Processing Suite
+                            Image Processing Web App
                           </div>
                           <p className="text-sm leading-tight text-white/90">
                             Discover our full collection of image processing tools
@@ -95,14 +91,6 @@ export function Header() {
                     </li>
                   </ul>
                 </NavigationMenuContent>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <Link 
-                  to="#" 
-                  className={navigationMenuTriggerStyle()}
-                >
-                  About Me
-                </Link>
               </NavigationMenuItem>
               <NavigationMenuItem>
                 <button

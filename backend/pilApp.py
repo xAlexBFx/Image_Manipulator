@@ -81,7 +81,6 @@ def filter6():
         # Update the main display with the filtered image
         update_main_image(current_image)
 
- 
 button1 = Button(root , text="Remove Red", command=filter1)
 
 red_amount = Entry(root, textvariable="Red Amount")
@@ -99,7 +98,6 @@ button3.grid(row=3,column=2)
 button4.grid(row=3,column=3)
 button5.grid(row=3,column=4)
 button6.grid(row=3,column=5)
- 
- 
+
 # Run the window's main loop
 root.mainloop()

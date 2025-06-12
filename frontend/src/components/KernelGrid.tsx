@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,48 +6,55 @@ import { cn } from '@/lib/utils';
 interface KernelGridProps {
   size: number;
   onChange: (grid: number[][]) => void;
+  onKernelModified: (modified: boolean) => void;
+  values?: number[][];
 }
 
-export function KernelGrid({ size, onChange }: KernelGridProps) {
+export function KernelGrid({ size, onChange, onKernelModified, values }: KernelGridProps) {
   // Limit size between 3 and 10
-  const normalizedSize = Math.min(Math.max(size, 3), 10);
+  const normalizedSize = Math.min(Math.max(size, 0), 10);
   
   const [grid, setGrid] = useState<number[][]>(() => 
     Array(normalizedSize).fill(0).map(() => Array(normalizedSize).fill(0))
   );
 
-  // Update grid when size changes
+  // Update grid when size changes or values change
   useEffect(() => {
-    const newSize = Math.min(Math.max(size, 3), 10);
+    const newSize = Math.min(Math.max(size, 0), 10);
     let newGrid = [...grid];
     
-    // Resize grid when normalizedSize changes
-    // Add rows if needed
-    while (newGrid.length < newSize) {
-      newGrid.push(Array(newSize).fill(0));
-    }
-    // Remove rows if needed
-    if (newGrid.length > newSize) {
-      newGrid = newGrid.slice(0, newSize);
-    }
-    
-    // Resize columns in each row
-    newGrid = newGrid.map(row => {
-      const newRow = [...row];
-      // Add columns if needed
-      while (newRow.length < newSize) {
-        newRow.push(0);
+    // If we have values and they match the size, use them
+    if (values && values.length === newSize && values[0].length === newSize) {
+      newGrid = values;
+    } else {
+      // Otherwise resize the grid
+      // Add rows if needed
+      while (newGrid.length < newSize) {
+        newGrid.push(Array(newSize).fill(0));
       }
-      // Remove columns if needed
-      if (newRow.length > newSize) {
-        return newRow.slice(0, newSize);
+      // Remove rows if needed
+      if (newGrid.length > newSize) {
+        newGrid = newGrid.slice(0, newSize);
       }
-      return newRow;
-    });
+      
+      // Resize columns in each row
+      newGrid = newGrid.map(row => {
+        const newRow = [...row];
+        // Add columns if needed
+        while (newRow.length < newSize) {
+          newRow.push(0);
+        }
+        // Remove columns if needed
+        if (newRow.length > newSize) {
+          return newRow.slice(0, newSize);
+        }
+        return newRow;
+      });
+    }
     
     setGrid(newGrid);
     onChange(newGrid);
-  }, [size, onChange]);
+  }, [size, onChange, values]);
 
   const handleInputChange = (rowIndex: number, colIndex: number, value: string) => {
     const newValue = value === '' ? 0 : Number(value);
@@ -56,6 +62,7 @@ export function KernelGrid({ size, onChange }: KernelGridProps) {
     newGrid[rowIndex][colIndex] = newValue;
     setGrid(newGrid);
     onChange(newGrid);
+    onKernelModified?.(true);
   };
 
   return (

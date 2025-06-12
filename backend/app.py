@@ -1,21 +1,19 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
 import os
+from flask_cors import CORS
+import json
+from io import BytesIO
+import base64
+import uuid
+
+# Define the images directory
+IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
+os.makedirs(IMAGES_DIR, exist_ok=True)
 
 app = Flask(__name__)
-
-# Configure upload folder
-UPLOAD_FOLDER = 'static/uploads'
-LOAD_TEMPLATE = 'static/template_images/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['LOAD_TEMPLATE'] = LOAD_TEMPLATE
-# Configure processed folder
-PROCESSED_FOLDER = 'static/processed'
-app.config['PROCESSED_FOLDER'] = PROCESSED_FOLDER
-
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(PROCESSED_FOLDER, exist_ok=True)
+CORS(app)  # Enable CORS for all routes
 
 # Helper function: Remove red filter
 def set_color(im, color_amount, color):
@@ -174,159 +172,128 @@ def insert_image(img, img_2, position):
         output_img.putdata(result_data)
         return output_img
 
-def rotate(im):
-    # Creates 4 copies of the Image, rotated in different directions
-    width, height = im.size
-    pixels = make2D(list(im.getdata()), width)
-
-    final_img = PILImage.new("RGB", (width*2, height*2))
-    final_img_data = []
-
-    # Images, a 2d list [image, (coordinates)] in order: left-right, top-bottom
-    # coordinates organized (row, column) or (y, x).
-    # images order in list: 270-degrees, 0-degrees, 90-degrees, 180-degrees
-    images = [
-                [ rotate_single(pixels, 3), (0, 0) ],
-                [ pixels, (0, width) ],
-                [ rotate_single(pixels, 1), (height, width) ],
-                [ rotate_single(pixels, 2), (height, 0) ]
-            ]
-    # Inserting images and saving the data together
-    for image in images:
-        final_img_data = insert_image(final_img, image[0], image[1])
-        final_img.putdata(final_img_data)
-    return final_img
-
-
-# Route: Image processing
-@app.route("/", methods=["GET", "POST"])
-def index():
-    image_url = None
-    template_images = [
-                        "blur.jpg",
-                        "checkerboard.jpg",
-                        "emboss.jpg",
-                        "high_pass.jpg",
-                        "outline.jpg",
-                        "sharpen.jpg",
-                        "x_y_edge.jpg"
-                    ]
+def apply_kernel(img, kernel):
+    # Getting Img information
+    width, height = img.size
+    pixels = make2D(list(img.getdata()), width)
+    #Preparing output structure
+    out_img2 = PILImage.new("RGB", (width, height))
+    out_img2_data = []
     
-    server_error = None
-    
-    mask_settings = {   
-                        "status": False,
-                        "size": None,
-                        "data": [],
-                    }
-    for i in range(len(template_images)):
-        template_images[i] = os.path.join(app.config["LOAD_TEMPLATE"], template_images[i])
-    if request.method == "POST":
-        # Handle file upload for new image
-        if "change_image" in request.form and "image" in request.files :
-            file = request.files["image"]   
-            if file:
-                filename = secure_filename(file.filename)
-                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-                file.save(filepath)
-                image_url = filepath
 
-        # Handle "Remove Red" filter
-        if("set_color" in request.form and not "current_image" in request.form):
-            server_error = "Please select an image first."
-            
-        elif("set_color" in request.form and not request.form.get("red_amount") and not request.form.get("green_amount") and not request.form.get("blue_amount")):
-            server_error = "Please insert at least one color value."
-            
-        elif "set_color" in request.form and "current_image" in request.form:
-            current_image_path = request.form["current_image"]
-            if os.path.exists(current_image_path):
-                im = PILImage.open(current_image_path).convert("RGB")
-
-                red_amount = request.form.get("red_amount")
-                green_amount = request.form.get("green_amount")
-                blue_amount = request.form.get("blue_amount")
-                if(red_amount):
-                    processed_image = set_color(im, int(red_amount), "red")
-                    
-                if(green_amount):
-                    processed_image = set_color(im, int(green_amount), "green")
-                    
-                if(blue_amount):
-                    processed_image = set_color(im, int(blue_amount), "blue")
-                # Save the processed image
-                processed_path = current_image_path.replace("uploads", "processed")
-                processed_image.save(processed_path)
-                image_url = processed_path
-
-
-        # Handle "Reset Image"
-        if "reset" in request.form and "current_image" in request.form:
-            current_image_path = request.form["current_image"]
-            if os.path.exists(current_image_path):
-                image_url = current_image_path.replace("processed", "uploads")
-
-        # Rotates the image clockwise
-        if "rotate" in request.form and "current_image" in request.form:
-            current_image_path = request.form["current_image"]
-            if os.path.exists(current_image_path):
-                im = PILImage.open(current_image_path).convert("RGB")
-                if(im.size[0] == im.size[1]):
-                    processed_image = rotate(im)
-                    processed_path = current_image_path.replace("uploads", "processed")
-                    processed_image.save(processed_path)
-                    image_url = processed_path
-                else:
-                    server_error = "The image must have the same width and height."
-        elif("rotate" in request.form and not "current_image" in request.form):
-            server_error = "Please select an image first."
-
-        if "insert_img" in request.form and "current_image" in request.form:
-            current_image_path = request.form["current_image"]
-            if os.path.exists(current_image_path):
-                file = request.files["little_img"]
-                if file:
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-                    file.save(filepath)
-                    x_coordinate = int(request.form.get("x-coordinate", 0))
-                    y_coordinate = int(request.form.get("y-coordinate", 0))
-                    
-                    small_img = PILImage.open(filepath).convert("RGB")
-                    im = PILImage.open(current_image_path).convert("RGB")
-                    if (im.size[0] - (small_img.size[0] + y_coordinate) < 0 or im.size[1] - (small_img.size[1] + x_coordinate) < 0):
-                        server_error = f"Image outside of range. Your bigger image is: {im.size[1]} x {im.size[0]}"
-
-                    processed_image = insert_image(im, small_img, (x_coordinate, y_coordinate))
-                    
-                    processed_path = current_image_path.replace("uploads", "processed")
-                    processed_image.save(processed_path)
-                    image_url = processed_path
-        elif("insert_img" in request.form and not "current_image" in request.form):
-            server_error = "Please select an image first."
-
-        if "set_mask_settings" in request.form:
-            mask_size = int(request.form.get("mask_size"))
-            # Checks if the size is odd, and must be True.
-            if (mask_size % 2 == 1):
-                output_mask = []
-                # Creates a 2d list to render and apply the mask values into it.
-                for row in range(mask_size):
-                    output_mask.append([])
-                    for col in range(mask_size):
-                        output_mask[row].append([])
-                mask_settings["status"] = True
-                mask_settings["size"] = mask_size
-                mask_settings["data"] = output_mask
+    # Iterating the mask over each pixel in the image
+    for row in range(len(pixels)):
+        out_img2_data.append([])
+        for col in range(len(pixels[0])):
+            r, g, b = (0, 0, 0)
+            total_weight = 0
+            # Going through the selected pixels and applying the mask
+            for m_r in range(len(kernel)):
+                for m_c in range(0,len(kernel[0])):
+                    if (col - m_c < 0 or row - m_r < 0):
+                        continue
+                    if (col + m_c > len(pixels[0]) or row + m_r > len(pixels)):
+                        continue
+                    # Taking the weight sum and multiplying colors by their mask value
+                    total_weight += kernel[m_r][m_c]
+                    r += pixels[max(0, row - m_r)][min(len(pixels[0]), col - m_c)][0]*kernel[m_r][m_c]
+                    g += pixels[max(0, row - m_r)][min(len(pixels[0]), col - m_c)][1]*kernel[m_r][m_c]
+                    b += pixels[max(0, row - m_r)][min(len(pixels[0]), col - m_c)][2]*kernel[m_r][m_c]
+            if(total_weight > -1 and total_weight < 1):
+                out_img2_data[row].append((r, g, b))
             else:
-                server_error = "The mask size must be an odd number."
+                out_img2_data[row].append((r//total_weight, g//total_weight, b//total_weight))
+    out_img2.putdata(flatten(out_img2_data))
+    return out_img2
 
-    return render_template("index.html",
-                        template_images = template_images, 
-                        image_url = image_url,
-                        server_error = server_error,
-                        mask_settings = mask_settings
-                        )
+
+# API Routes
+
+# Process image with specified operations
+@app.route("/api/process-image", methods=["POST"])
+def process_image():
+    try:
+        
+        # Get uploaded file
+        if 'image' not in request.files:
+            print("Error: No image file provided")
+            return jsonify({'error': 'No image file provided'}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            print("Error: No selected file")
+            return jsonify({'error': 'No selected file'}), 400
+
+        # Generate a unique ID for this processing request
+        unique_id = uuid.uuid4().hex
+        temp_file = os.path.join(IMAGES_DIR, f"temp_image_{unique_id}.png")
+        file.save(temp_file)
+
+        # Get other parameters
+        try:
+            grid_size = int(request.form.get('grid_size', 3))
+        except ValueError:
+            print("Error: Invalid grid_size value")
+            return jsonify({'error': 'Invalid grid_size value'}), 400
+
+        try:
+            rgb_values = json.loads(request.form.get('rgb_values', '{}'))
+        except json.JSONDecodeError:
+            print("Error: Invalid RGB values format")
+            return jsonify({'error': 'Invalid RGB values format'}), 400
+
+        try:
+            kernel_values = json.loads(request.form.get('kernel_values', '[]'))
+        except json.JSONDecodeError:
+            print("Error: Invalid kernel values format")
+            return jsonify({'error': 'Invalid kernel values format'}), 400
+
+        # Check if RGB or kernel were modified
+        rgb_modified = request.form.get('rgb_modified', 'false') == 'true'
+        kernel_modified = request.form.get('kernel_modified', 'false') == 'true'
+        if(rgb_modified == False and kernel_modified == False):
+            print("Error: No changes made to image")
+            return jsonify({'error': 'No changes made to image'}), 400
+
+        # Process the image using the provided parameters
+        try:
+            processed_image = PILImage.open(temp_file).convert("RGB")
+            
+            # Apply color adjustments if RGB values were modified
+            if rgb_modified:
+                processed_image = set_color(processed_image, rgb_values['red'], "red")
+                processed_image = set_color(processed_image, rgb_values['green'], "green")
+                processed_image = set_color(processed_image, rgb_values['blue'], "blue")
+            
+            # Apply kernel if kernel was modified
+            if kernel_modified:
+                processed_image = apply_kernel(processed_image, kernel_values)
+                
+            # Convert to base64 for frontend
+            buffered = BytesIO()
+            processed_image.save(buffered, format="PNG")
+            img_str = base64.b64encode(buffered.getvalue()).decode()
+
+        except Exception as e:
+            print(f"Error processing image: {str(e)}")
+            return jsonify({"error": f"Error processing image: {str(e)}"}), 500
+
+        # Clean up the temporary file
+        os.remove(temp_file)
+
+        return jsonify({
+            "success": True,
+            "image": f"data:image/png;base64,{img_str}",
+            "grid_size": grid_size,
+            "rgb_values": rgb_values,
+            "kernel_values": kernel_values,
+            "rgb_modified": rgb_modified,
+            "kernel_modified": kernel_modified
+        })
+
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)

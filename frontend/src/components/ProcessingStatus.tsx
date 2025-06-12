@@ -1,16 +1,14 @@
-
-import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface ProcessingStatusProps {
   status: 'idle' | 'processing' | 'completed' | 'error';
   progress: number;
   message?: string;
+  errorMessage?: string;
 }
 
-export function ProcessingStatus({ status, progress, message }: ProcessingStatusProps) {
+export function ProcessingStatus({ status, progress, message, errorMessage }: ProcessingStatusProps) {
   if (status === 'idle') return null;
 
   const getStatusIcon = () => {
@@ -29,11 +27,11 @@ export function ProcessingStatus({ status, progress, message }: ProcessingStatus
   const getStatusText = () => {
     switch (status) {
       case 'processing':
-        return 'Processing your image...';
+        return 'Processing your image... (Time might increase with larger images/kernels size)';
       case 'completed':
         return 'Processing completed!';
       case 'error':
-        return 'Processing failed';
+        return errorMessage || 'Processing failed';
       default:
         return '';
     }
@@ -63,18 +61,6 @@ export function ProcessingStatus({ status, progress, message }: ProcessingStatus
           )}
         </div>
       </div>
-      
-      {status === 'processing' && (
-        <div className="space-y-2">
-          <Progress 
-            value={progress} 
-            className="h-2"
-          />
-          <p className="text-sm text-muted-foreground text-center">
-            {progress}% complete
-          </p>
-        </div>
-      )}
     </Card>
   );
 }

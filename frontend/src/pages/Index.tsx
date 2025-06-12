@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Zap, Download, RotateCcw } from 'lucide-react';
+import { Plus, Minus, Download } from 'lucide-react';
 import { KernelGrid } from '@/components/KernelGrid';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const Index = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -17,10 +18,179 @@ const Index = () => {
   const [gridSize, setGridSize] = useState(3);
   const [kernelValues, setKernelValues] = useState<number[][]>([]);
   const [rgbValues, setRgbValues] = useState({
-    red: 128,
-    green: 128,
-    blue: 128
+    red: 0,
+    green: 0,
+    blue: 0
   });
+  const [rgbModified, setRgbModified] = useState(false);
+  const [kernelModified, setKernelModified] = useState(false);
+  const [error, setError] = useState<string>('');
+  const [processedImage, setProcessedImage] = useState<string | null>(null);
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [presets] = useState([
+    {
+      name: 'X Edge Detection',
+      gridSize: 3,
+      kernelValues: [
+        [-1, 0, 1],
+        [-2, 0, 2],
+        [-1, 0, 1]
+      ]
+    },
+    {
+      name: 'Y Edge Detection',
+      gridSize: 3,
+      kernelValues: [
+        [-1, -2, -1],
+        [0, 0, 0],
+        [1, 2, 1]
+      ]
+    },
+    {
+      name: 'XY Edge Detection',
+      gridSize: 3,
+      kernelValues: [
+        [-1, -1, -1],
+        [-1, 8, -1],
+        [-1, -1, -1]
+      ]
+    },
+    {
+      name: 'Blur (Box)',
+      gridSize: 3,
+      kernelValues: [
+        [1, 1, 1],
+        [1, 1, 1],
+        [1, 1, 1]
+      ]
+    },
+    {
+      name: 'Gaussian Blur',
+      gridSize: 5,
+      kernelValues: [
+        [1,  4,  6,  4, 1],
+        [4, 16, 24, 16, 4],
+        [6, 24, 36, 24, 6],
+        [4, 16, 24, 16, 4],
+        [1,  4,  6,  4, 1]
+      ]
+    },
+    {
+      name: 'Gaussian Blur (advanced)',
+      gridSize: 7,
+      kernelValues: [
+        [0, 0, 1, 2, 1, 0, 0],
+        [0, 3, 13, 22, 13, 3, 0],
+        [1, 13, 59, 97, 59, 13, 1],
+        [2, 22, 97, 159, 97, 22, 2],
+        [1, 13, 59, 97, 59, 13, 1],
+        [0, 3, 13, 22, 13, 3, 0],
+        [0, 0, 1, 2, 1, 0, 0]
+      ]
+    },
+    {
+      name: 'Gaussian LoG',
+      gridSize: 5,
+      kernelValues: [
+        [0,   0,  -1,  0,  0],
+        [0,  -1,  -2, -1,  0],
+        [-1, -2,  16, -2, -1],
+        [0,  -1,  -2, -1,  0],
+        [0,   0,  -1,  0,  0]
+      ]
+    },
+    {
+      name: 'Gaussian LoG (Advanced)',
+      gridSize: 7,
+      kernelValues: [
+        [0, 0, -1, -1, -1, 0, 0],
+        [0, -2, -3, -3, -3, -2, 0],
+        [-1, -3, 5, 7, 5, -3, -1],
+        [-1, -3, 7, 24, 7, -3, -1],
+        [-1, -3, 5, 7, 5, -3, -1],
+        [0, -2, -3, -3, -3, -2, 0],
+        [0, 0, -1, -1, -1, 0, 0]
+      ]
+    },
+    {
+      name: 'Laplacian',
+      gridSize: 5,
+      kernelValues: [
+        [0,  0, -1,  0,  0],
+        [0, -1, -2, -1,  0],
+        [-1, -2, 16, -2, -1],
+        [0, -1, -2, -1,  0],
+        [0,  0, -1,  0,  0],
+      ]
+    },
+    {
+      name: 'Gabor Filter (Conceptual 0-degrees)',
+      gridSize: 7,
+      kernelValues: [
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 4, 6, 4, 1, 0],
+        [0, 4, 16, 24, 16, 4, 0],
+        [0, 6, 24, 36, 24, 6, 0],
+        [0, 4, 16, 24, 16, 4, 0],
+        [0, 1, 4, 6, 4, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0]
+      ]
+    },
+    {
+      name: 'Sharpen',
+      gridSize: 3,
+      kernelValues: [
+        [0, -1, 0],
+        [-1, 5, -1],
+        [0, -1, 0]
+      ]
+    },
+    {
+      name: 'Emboss',
+      gridSize: 3,
+      kernelValues: [
+        [-2, -1, 0],
+        [-1, 1, 1],
+        [0, 1, 2]
+      ]
+    },
+    {
+      name: 'Sobel X',
+      gridSize: 3,
+      kernelValues: [
+        [1, 0, -1],
+        [2, 0, -2],
+        [1, 0, -1]
+      ]
+    },
+    {
+      name: 'Sobel Y',
+      gridSize: 3,
+      kernelValues: [
+        [1, 2, 1],
+        [0, 0, 0],
+        [-1, -2, -1]
+      ]
+    },
+    {
+      name: 'Prewitt X',
+      gridSize: 3,
+      kernelValues: [
+        [-1, 0, 1],
+        [-1, 0, 1],
+        [-1, 0, 1]
+      ]
+    },
+    {
+      name: 'Prewitt Y',
+      gridSize: 3,
+      kernelValues: [
+        [-1, -1, -1],
+        [0, 0, 0],
+        [1, 1, 1]
+      ]
+    }
+  ]);
 
   const handleImageSelect = (file: File) => {
     setSelectedFile(file);
@@ -28,23 +198,46 @@ const Index = () => {
     setProgress(0);
   };
 
-  const startProcessing = () => {
-    if (!selectedFile) return;
+  const startProcessing = async () => {
+    if (!selectedFile || (!rgbModified && !kernelModified)) return;
 
     setProcessingStatus('processing');
     setProgress(0);
 
-    // Simulate processing progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setProcessingStatus('completed');
-          return 100;
-        }
-        return prev + Math.random() * 15 + 5;
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedFile);
+      formData.append('grid_size', gridSize.toString());
+      formData.append('rgb_values', JSON.stringify(rgbValues));
+      formData.append('kernel_values', JSON.stringify(kernelValues));
+      formData.append('rgb_modified', rgbModified.toString());
+      formData.append('kernel_modified', kernelModified.toString());
+
+      const controller = new AbortController();
+      const signal = controller.signal;
+      const response = await fetch('http://192.168.102.120:5000/api/process-image', {
+        method: 'POST',
+        body: formData,
+        signal: signal
       });
-    }, 200);
+
+      if (!response.ok) {
+        throw new Error('Processing failed');
+      }
+
+      const result = await response.json();
+      
+      // Update the UI with the processed image
+      setProcessingStatus('completed');
+      setProgress(100);
+      setProcessedImage(result.image);
+      
+
+    } catch (error) {
+      setProcessingStatus('error');
+      setError(error instanceof Error ? error.message : 'An error occurred');
+      console.error('Error:', error);
+    }
   };
 
   const resetProcess = () => {
@@ -56,8 +249,11 @@ const Index = () => {
   const handleGridSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newSize = parseInt(event.target.value);
     if (!isNaN(newSize)) {
-      // Enforce min 3 and max 10
-      setGridSize(Math.min(Math.max(newSize, 3), 10));
+      // Make sure the size is odd
+      const oddSize = newSize % 2 === 0 ? newSize + 1 : newSize;
+      // Enforce min 3 and max 11
+      setGridSize(Math.min(Math.max(oddSize, 3), 11));
+      setKernelModified(true);
     }
   };
 
@@ -68,7 +264,50 @@ const Index = () => {
         ...prev,
         [color]: numValue
       }));
+      setRgbModified(true);
     }
+  };
+
+  const handlePresetSelect = (presetName: string) => {
+    const preset = presets.find(p => p.name === presetName);
+    if (preset) {
+      // First set the grid size
+      setGridSize(preset.gridSize);
+      
+      // Set the values directly
+      setKernelValues(preset.kernelValues);
+      setKernelModified(true);
+      setSelectedPreset(presetName);
+    }
+  };
+
+  const downloadProcessedImage = () => {
+    if (!processedImage) return;
+    
+    // Extract the base64 data from the image URL
+    const base64Data = processedImage.split(',')[1];
+    
+    // Convert base64 to binary string
+    const binaryString = window.atob(base64Data);
+    
+    // Create an array buffer from the binary string
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Create a blob from the array buffer
+    const blob = new Blob([bytes.buffer], { type: 'image/png' });
+    const url = window.URL.createObjectURL(blob);
+    
+    // Create a temporary link and trigger download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'processed_image.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -97,7 +336,7 @@ const Index = () => {
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-              <span>Instant Processing</span>
+              <span>Fast Processing</span>
             </div>
           </div>
         </div>
@@ -117,21 +356,79 @@ const Index = () => {
                   <h3 className="text-lg font-semibold mb-4">Kernel Configuration</h3>
                   
                   <div className="flex items-center gap-4 mb-6">
-                    <Label htmlFor="gridSize">Grid Size:</Label>
-                    <Input 
-                      id="gridSize"
-                      type="number" 
-                      value={gridSize}
-                      onChange={handleGridSizeChange}
-                      min={3}
-                      max={10}
-                      className="w-20"
-                    />
+                    <Label htmlFor="gridSize">Kernel Size:</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const newSize = gridSize - 2;
+                          if (newSize >= 3) {
+                            const oddSize = newSize % 2 === 0 ? newSize + 1 : newSize;
+                            setGridSize(oddSize);
+                            setKernelModified(true);
+                          }
+                        }}
+                        disabled={gridSize <= 3}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input 
+                        id="gridSize"
+                        type="number" 
+                        value={gridSize}
+                        onChange={handleGridSizeChange}
+                        min={3}
+                        max={11}
+                        step={2}
+                        disabled
+                        className="w-20"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const newSize = gridSize + 2;
+                          if (newSize <= 11) {
+                            const oddSize = newSize % 2 === 0 ? newSize + 1 : newSize;
+                            setGridSize(oddSize);
+                            setKernelModified(true);
+                          }
+                        }}
+                        disabled={gridSize >= 11}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="mb-8">
+                    <Label className="mb-2 block">Presets:</Label>
+                    <Select value={selectedPreset} onValueChange={handlePresetSelect}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a preset" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Kernel Presets</SelectLabel>
+                          {presets.map(preset => (
+                            <SelectItem key={preset.name} value={preset.name}>
+                              {preset.name}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="mb-8">
                     <Label className="mb-2 block">Kernel Values:</Label>
-                    <KernelGrid size={gridSize} onChange={setKernelValues} />
+                    <KernelGrid 
+                      size={gridSize} 
+                      onChange={setKernelValues}
+                      onKernelModified={() => setKernelModified(true)}
+                      values={kernelValues}
+                    />
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -191,7 +488,7 @@ const Index = () => {
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
                 >
-                  <Zap className="h-5 w-5 mr-2" />
+                  <Plus className="h-5 w-5 mr-2" />
                   Start Processing
                 </Button>
               </Card>
@@ -216,15 +513,20 @@ const Index = () => {
                     <p className="text-lg mb-4">
                       Your image has been successfully processed with our special algorithm.
                     </p>
-                    <p className="text-muted-foreground">
-                      This is where the processed result would be displayed.
-                    </p>
+                    {processedImage && (
+                      <img 
+                        src={processedImage}
+                        alt="Processed image"
+                        className="max-w-full h-auto rounded-lg shadow-lg mt-4"
+                      />
+                    )}
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button
                       size="lg"
                       className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white"
+                      onClick={downloadProcessedImage}
                     >
                       <Download className="h-5 w-5 mr-2" />
                       Download Result
@@ -234,7 +536,7 @@ const Index = () => {
                       size="lg"
                       onClick={resetProcess}
                     >
-                      <RotateCcw className="h-5 w-5 mr-2" />
+                      <Minus className="h-5 w-5 mr-2" />
                       Process Another
                     </Button>
                   </div>
@@ -250,11 +552,11 @@ const Index = () => {
           <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             <Card className="p-6 text-center hover:shadow-lg transition-all duration-300 hover:scale-105">
               <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                <Zap className="h-8 w-8 text-blue-600" />
+                <Plus className="h-8 w-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">Lightning Fast</h3>
+              <h3 className="text-xl font-semibold mb-3">Faster Than Others</h3>
               <p className="text-muted-foreground">
-                Our optimized algorithms process your images in seconds, not minutes.
+                Our optimized algorithms process your images in a minute.
               </p>
             </Card>
 
@@ -276,7 +578,7 @@ const Index = () => {
               </div>
               <h3 className="text-xl font-semibold mb-3">Privacy First</h3>
               <p className="text-muted-foreground">
-                Your images are processed locally and never stored on our servers.
+                Your images are never stored on our servers.
               </p>
             </Card>
           </div>
