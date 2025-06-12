@@ -1,0 +1,12 @@
+{
+    "client": {
+      "path": "client",
+      "buildCommand": "npm run build",
+      "outputPath": "client/dist"
+    },
+    "server": {
+      "path": "server",
+      "startCommand": "python app.py",
+      "port": 8080
+    }
+}
