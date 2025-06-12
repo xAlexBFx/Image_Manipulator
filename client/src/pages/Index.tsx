@@ -215,7 +215,7 @@ const Index = () => {
 
       const controller = new AbortController();
       const signal = controller.signal;
-      const response = await fetch('http://192.168.102.120:5000/api/process-image', {
+      const response = await fetch('https://jovial-froyo-91ada4.netlify.app/api/process-image', {
         method: 'POST',
         body: formData,
         signal: signal
