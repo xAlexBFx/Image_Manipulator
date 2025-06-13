@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Define the images directory
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
+IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp1')
 os.makedirs(IMAGES_DIR, exist_ok=True)
 
 # Helper function: Remove red filter
@@ -226,7 +226,7 @@ def process_image():
 
         # Generate a unique ID for this processing request
         unique_id = uuid.uuid4().hex
-        temp_file = os.path.join(IMAGES_DIR, f"temp_image_{unique_id}.png")
+        temp_file = os.path.join(IMAGES_DIR, f"temp1_image_{unique_id}.png")
         file.save(temp_file)
 
         # Get other parameters
