@@ -7,6 +7,7 @@ from io import BytesIO
 import base64
 import uuid
 from werkzeug.exceptions import HTTPException
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -19,6 +20,7 @@ os.makedirs(IMAGES_DIR, exist_ok=True)
 def handle_exception(e):
     response = e.get_response()
     response.data = json.dumps({
+        "status": "error",
         "code": e.code,
         "name": e.name,
         "description": e.description,
@@ -28,9 +30,11 @@ def handle_exception(e):
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    app.logger.error(f"An unexpected error occurred: {str(e)}")
     return jsonify({
-        "error": str(e),
-        "message": "An unexpected error occurred"
+        "status": "error",
+        "message": "An unexpected error occurred",
+        "error": str(e)
     }), 500
 
 # Helper function: Remove red filter
