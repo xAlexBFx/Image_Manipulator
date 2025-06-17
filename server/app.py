@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify
-from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
 import os
 from flask_cors import CORS
