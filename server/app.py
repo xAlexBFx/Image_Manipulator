@@ -6,13 +6,32 @@ import json
 from io import BytesIO
 import base64
 import uuid
+from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
 # Define the images directory
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp1')
+IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 os.makedirs(IMAGES_DIR, exist_ok=True)
+
+@app.errorhandler(HTTPException)
+def handle_exception(e):
+    response = e.get_response()
+    response.data = json.dumps({
+        "code": e.code,
+        "name": e.name,
+        "description": e.description,
+    })
+    response.content_type = "application/json"
+    return response
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    return jsonify({
+        "error": str(e),
+        "message": "An unexpected error occurred"
+    }), 500
 
 # Helper function: Remove red filter
 def set_color(im, color_amount, color):
