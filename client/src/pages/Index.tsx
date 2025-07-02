@@ -215,7 +215,8 @@ const Index = () => {
 
       const controller = new AbortController();
       const signal = controller.signal;
-      const response = await fetch('http://10.0.0.116:5000/api/process-image', {
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/process-image`, {
         method: 'POST',
         body: formData,
         signal: signal

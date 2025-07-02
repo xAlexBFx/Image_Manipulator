@@ -7,11 +7,9 @@ from io import BytesIO
 import base64
 import uuid
 from werkzeug.exceptions import HTTPException
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
-
+CORS(app, origins=["https://image-manipulator.windsurf.build/"])
 # Define the images directory
 IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 os.makedirs(IMAGES_DIR, exist_ok=True)
