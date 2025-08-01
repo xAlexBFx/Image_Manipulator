@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { imageProcessor } from '@/lib/imageUtils';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ImageUpload } from '@/components/ImageUpload';
@@ -7,13 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Minus, Download } from 'lucide-react';
+import { Minus, Plus, Download } from 'lucide-react';
 import { KernelGrid } from '@/components/KernelGrid';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from '@/components/ui/select';
 
 const Index = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [processingStatus, setProcessingStatus] = useState<'idle' | 'processing' | 'completed' | 'error'>('idle');
+  // Progress is kept in state for potential future UI updates
   const [progress, setProgress] = useState(0);
   const [gridSize, setGridSize] = useState(3);
   const [kernelValues, setKernelValues] = useState<number[][]>([]);
@@ -198,6 +200,28 @@ const Index = () => {
     setProgress(0);
   };
 
+  const processImage = async (imageData: ImageData): Promise<ImageData> => {
+    let result = new ImageData(
+      new Uint8ClampedArray(imageData.data),
+      imageData.width,
+      imageData.height
+    );
+
+    // Apply RGB adjustments if modified
+    if (rgbModified) {
+      if (rgbValues.red > 0) result = imageProcessor.setColor(result, rgbValues.red, 'red');
+      if (rgbValues.green > 0) result = imageProcessor.setColor(result, rgbValues.green, 'green');
+      if (rgbValues.blue > 0) result = imageProcessor.setColor(result, rgbValues.blue, 'blue');
+    }
+
+    // Apply kernel if modified
+    if (kernelModified && kernelValues.length > 0) {
+      result = imageProcessor.applyKernel(result, kernelValues);
+    }
+
+    return result;
+  };
+
   const startProcessing = async () => {
     if (!selectedFile || (!rgbModified && !kernelModified)) return;
 
@@ -205,35 +229,59 @@ const Index = () => {
     setProgress(0);
 
     try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
-      formData.append('grid_size', gridSize.toString());
-      formData.append('rgb_values', JSON.stringify(rgbValues));
-      formData.append('kernel_values', JSON.stringify(kernelValues));
-      formData.append('rgb_modified', rgbModified.toString());
-      formData.append('kernel_modified', kernelModified.toString());
-
-      const controller = new AbortController();
-      const signal = controller.signal;
+      // Create an image element to load the file
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(selectedFile);
       
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/process-image`, {
-        method: 'POST',
-        body: formData,
-        signal: signal
-      });
-
-      if (!response.ok) {
-        throw new Error('Processing failed');
-      }
-
-      const result = await response.json();
+      img.onload = async () => {
+        try {
+          // Create a canvas to process the image
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Could not get canvas context');
+          
+          // Set canvas dimensions to match the image
+          canvas.width = img.width;
+          canvas.height = img.height;
+          
+          // Draw the image on the canvas
+          ctx.drawImage(img, 0, 0);
+          
+          // Get the image data
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          
+          // Process the image
+          const processedData = await processImage(imageData);
+          
+          // Put the processed data back on the canvas
+          ctx.putImageData(processedData, 0, 0);
+          
+          // Convert the canvas to a data URL
+          const processedImageUrl = canvas.toDataURL('image/png');
+          
+          // Update the UI with the processed image
+          setProcessingStatus('completed');
+          setProgress(100);
+          setProcessedImage(processedImageUrl);
+          
+        } catch (error) {
+          setProcessingStatus('error');
+          setError(error instanceof Error ? error.message : 'An error occurred');
+          console.error('Error processing image:', error);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      };
       
-      // Update the UI with the processed image
-      setProcessingStatus('completed');
-      setProgress(100);
-      setProcessedImage(result.image);
+      img.onerror = () => {
+        setProcessingStatus('error');
+        setError('Failed to load image');
+        URL.revokeObjectURL(objectUrl);
+      };
       
-
+      // Start loading the image
+      img.src = objectUrl;
+      
     } catch (error) {
       setProcessingStatus('error');
       setError(error instanceof Error ? error.message : 'An error occurred');
