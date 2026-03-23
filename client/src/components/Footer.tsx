@@ -1,4 +1,4 @@
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { Github, Linkedin, Mail, ExternalLink } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 
@@ -40,6 +40,13 @@ export function Footer() {
                   <a href="https://www.linkedin.com/in/alex-betances-1435b6361/" target="_blank" rel="noopener noreferrer">
                     <Linkedin className="h-5 w-5" />
                     <span>LinkedIn</span>
+                  </a>
+                </Button>
+                
+                <Button variant="outline" className="flex items-center gap-2" asChild>
+                  <a href="https://betancesdev.netlify.app" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-5 w-5" />
+                    <span>Portfolio</span>
                   </a>
                 </Button>
                 
