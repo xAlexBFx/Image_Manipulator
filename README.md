@@ -8,7 +8,7 @@
 
 ![Screenshot (22)](https://github.com/user-attachments/assets/30b4ea78-6a09-4080-b4b7-120fcfde754e)
 
-# Image Manipulator
+# ImageBlackBox
 
 A web-based image manipulation application that allows users to perform various image editing operations using a modern, responsive interface.
 
@@ -48,8 +48,8 @@ A web-based image manipulation application that allows users to perform various 
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/xAlexBFx/Image_Manipulator.git
-cd Image_Manipulator
+git clone https://github.com/xAlexBFx/ImageBlackBox.git
+cd ImageBlackBox
 ```
 
 2. Install server dependencies:
@@ -97,7 +97,7 @@ gunicorn app:app
 ## Project Structure
 
 ```
-image_manipulator/
+imageblackbox/
 ├── client/              # Frontend React application
 │   ├── src/            # Source code
 │   ├── public/         # Static assets
