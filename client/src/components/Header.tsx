@@ -1,5 +1,4 @@
 import { ThemeToggle } from './ThemeToggle';
-import { Sparkles } from 'lucide-react';
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from './ui/navigation-menu';
 
 export function Header() {
@@ -11,20 +10,15 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-background/30 backdrop-blur-xl supports-[backdrop-filter]:bg-background/20">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="relative">
-            <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 p-2">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 blur-lg opacity-30 animate-pulse" />
-          </div>
+          <img src="/logo.jpg" alt="Image Black Box Logo" className="h-10 w-10 rounded-lg" />
           <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ImageMagic
+            <h1 className="text-xl font-bold bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 dark:from-zinc-100 dark:via-zinc-400 dark:to-zinc-100 bg-clip-text text-transparent">
+              Image Black Box
             </h1>
-            <p className="text-xs text-muted-foreground">Free Image Processing Tool</p>
+            <p className="text-xs text-muted-foreground">What Does a Deep Learning Model See while Being Trained?</p>
           </div>
         </div>
 
@@ -37,7 +31,7 @@ export function Header() {
                     <li className="row-span-3 col-span-1">
                       <NavigationMenuLink asChild>
                         <a
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-blue-500 to-purple-600 p-6 no-underline outline-none focus:shadow-md"
+                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-zinc-900 to-zinc-700 p-6 no-underline outline-none focus:shadow-md"
                           href="#"
                         >
                           <div className="mt-4 mb-2 text-lg font-medium text-white">

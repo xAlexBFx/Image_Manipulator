@@ -14,7 +14,7 @@ export function ProcessingStatus({ status, progress, message, errorMessage }: Pr
   const getStatusIcon = () => {
     switch (status) {
       case 'processing':
-        return <Loader2 className="h-6 w-6 animate-spin text-blue-500" />;
+        return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
       case 'completed':
         return <CheckCircle className="h-6 w-6 text-green-500" />;
       case 'error':

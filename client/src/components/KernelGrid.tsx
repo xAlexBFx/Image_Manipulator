@@ -14,8 +14,8 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
   // Limit size between 3 and 10
   const normalizedSize = Math.min(Math.max(size, 0), 10);
   
-  const [grid, setGrid] = useState<number[][]>(() => 
-    Array(normalizedSize).fill(0).map(() => Array(normalizedSize).fill(0))
+  const [grid, setGrid] = useState<(number | string)[][]>(() => 
+    Array(normalizedSize).fill(0).map(() => Array(normalizedSize).fill(''))
   );
 
   // Update grid when size changes or values change
@@ -25,12 +25,14 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
     
     // If we have values and they match the size, use them
     if (values && values.length === newSize && values[0].length === newSize) {
-      newGrid = values;
+      newGrid = values.map(row => 
+        row.map(cell => cell === 0 ? '' : cell.toString())
+      );
     } else {
       // Otherwise resize the grid
       // Add rows if needed
       while (newGrid.length < newSize) {
-        newGrid.push(Array(newSize).fill(0));
+        newGrid.push(Array(newSize).fill(''));
       }
       // Remove rows if needed
       if (newGrid.length > newSize) {
@@ -42,7 +44,7 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
         const newRow = [...row];
         // Add columns if needed
         while (newRow.length < newSize) {
-          newRow.push(0);
+          newRow.push('');
         }
         // Remove columns if needed
         if (newRow.length > newSize) {
@@ -53,15 +55,23 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
     }
     
     setGrid(newGrid);
-    onChange(newGrid);
+    // Convert to numbers for the parent component, treating empty string as 0
+    const numericGrid = newGrid.map(row => 
+      row.map(cell => cell === '' ? 0 : Number(cell))
+    );
+    onChange(numericGrid);
   }, [size, onChange, values]);
 
   const handleInputChange = (rowIndex: number, colIndex: number, value: string) => {
-    const newValue = value === '' ? 0 : Number(value);
     const newGrid = [...grid];
-    newGrid[rowIndex][colIndex] = newValue;
+    newGrid[rowIndex][colIndex] = value;
     setGrid(newGrid);
-    onChange(newGrid);
+    
+    // Convert to numbers for the parent component, treating empty string as 0
+    const numericGrid = newGrid.map(row => 
+      row.map(cell => cell === '' ? 0 : Number(cell))
+    );
+    onChange(numericGrid);
     onKernelModified?.(true);
   };
 
@@ -79,9 +89,11 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
             <Input
               key={`${rowIndex}-${colIndex}`}
               type="number"
-              value={grid[rowIndex]?.[colIndex] ?? 0}
+              value={grid[rowIndex]?.[colIndex] ?? ''}
               onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-              className="w-12 h-12 text-center p-0"
+              onFocus={(e) => e.target.select()}
+              className="w-14 h-14 text-center p-0 text-sm font-medium border-2 transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              placeholder="n"
               min="-100"
               max="100"
             />

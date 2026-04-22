@@ -95,7 +95,7 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 size="lg"
-                className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+                className="relative overflow-hidden bg-gradient-to-r from-zinc-900 to-zinc-700 hover:from-zinc-950 hover:to-zinc-800 text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 dark:from-zinc-100 dark:to-zinc-300 dark:hover:from-zinc-50 dark:hover:to-zinc-200 dark:text-zinc-900"
                 onClick={() => document.getElementById('fileInput')?.click()}
               >
                 <ImageIcon className="h-5 w-5 mr-2" />
