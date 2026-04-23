@@ -31,7 +31,7 @@ export function Footer() {
                   className="group relative overflow-hidden rounded-2xl px-12 py-6 text-xl font-semibold text-white transition-all duration-200 bg-gradient-to-b from-zinc-900 to-zinc-800 dark:from-zinc-100 dark:to-zinc-200 dark:text-zinc-900 border border-white/10 dark:border-zinc-300/40 shadow-[0_18px_0_rgba(0,0,0,0.35),0_26px_60px_rgba(0,0,0,0.25)] hover:-translate-y-0.5 hover:shadow-[0_22px_0_rgba(0,0,0,0.32),0_30px_70px_rgba(0,0,0,0.28)] active:translate-y-[2px] active:shadow-[0_10px_0_rgba(0,0,0,0.32),0_18px_40px_rgba(0,0,0,0.22)]"
                   asChild
                 >
-                  <a href="https://alexbetances.com" target="_blank" rel="noopener noreferrer">
+                  <a href="https://betancesdev.netlify.app" target="_blank" rel="noopener noreferrer">
                     <span className="pointer-events-none absolute inset-0" aria-hidden="true">
                       <span className="absolute inset-0 opacity-70 group-hover:opacity-100 transition-opacity duration-200 bg-[radial-gradient(circle_at_30%_15%,rgba(255,255,255,0.28),transparent_45%),radial-gradient(circle_at_70%_85%,rgba(99,102,241,0.20),transparent_55%)]" />
                       <span className="absolute inset-x-0 top-0 h-[2px] bg-white/40 dark:bg-white/60" />

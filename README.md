@@ -10,111 +10,105 @@
 
 # ImageBlackBox
 
-A web-based image manipulation application that allows users to perform various image editing operations using a modern, responsive interface.
+An interactive, web-based image manipulation playground focused on building intuition for *what vision models “see”*.
+
+Most image processing runs **client-side** (Canvas + typed utilities) for instant feedback. A small **optional** Flask API is included under `server/`.
 
 ## Features
 
-- Upload and process images
-- Multiple image manipulation operations
-- Responsive web interface
-- Real-time image preview
-- Modern UI built with React and Shadcn UI
-- RESTful API backend
+- Upload an image with drag-and-drop
+- RGB channel overrides (set R/G/B channels to chosen values)
+- Convolution kernels
+  - Presets (Sobel/Scharr, Laplacian, blur, sharpen, LoG, etc.)
+  - Custom kernel editing
+  - Optional multi-step kernel pipeline (chain multiple kernels)
+- Before/after comparisons with sliders
+- Download processed output as PNG
 
 ## Tech Stack
 
-### Frontend
-- React
-- TypeScript
-- Vite
-- Shadcn UI (Radix UI components)
-- Tailwind CSS
+## Frontend
 
-### Backend
+- React + TypeScript
+- Vite
+- Tailwind CSS + shadcn/ui (Radix primitives)
+- `@tanstack/react-query` (app scaffolding)
+
+## Backend (optional)
+
 - Python Flask
-- Pillow (PIL) for image processing
-- Flask-CORS for cross-origin requests
-- Gunicorn for production deployment
+- Pillow (PIL)
+- Flask-CORS
 
 ## Getting Started
 
-### Prerequisites
+## Prerequisites
 
-- Node.js (v16 or higher)
-- Python 3.8 or higher
-- npm or yarn package manager
+- Node.js 16+
+- npm
 
-### Installation
+## Run the frontend (recommended)
 
-1. Clone the repository:
-```bash
-git clone https://github.com/xAlexBFx/ImageBlackBox.git
-cd ImageBlackBox
-```
-
-2. Install server dependencies:
-```bash
-cd server
-pip install -r requirements.txt
-```
-
-3. Install client dependencies:
-```bash
-cd ../client
-npm install
-```
-
-### Running the Application
-
-1. Start the server:
-```bash
-cd server
-python app.py
-```
-
-2. In a new terminal, start the client:
 ```bash
 cd client
+npm install
 npm run dev
 ```
 
-The application will show you the URL in the console
+Vite runs on `http://localhost:8080`.
 
-### Building for Production
+## Optional: Run the Flask API
 
-1. Build the client:
+The UI currently performs processing in the browser, but the repo contains a Flask endpoint you can use for server-side processing.
+
+```bash
+cd server
+python -m venv .venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+pip install flask pillow flask-cors gunicorn
+python app.py
+```
+
+The server listens on `http://localhost:5000`.
+
+Note: `server/app.py` currently enables CORS for a specific deployed origin. For local development, you may need to adjust the `CORS(...)` origin list.
+
+## Production build (frontend)
+
 ```bash
 cd client
 npm run build
-```
-
-2. Start the production server:
-```bash
-cd server
-gunicorn app:app
+npm run preview
 ```
 
 ## Project Structure
 
-```
-imageblackbox/
-├── client/              # Frontend React application
-│   ├── src/            # Source code
-│   ├── public/         # Static assets
-│   └── package.json    # Frontend dependencies
-├── server/             # Backend Flask application
-│   ├── app.py         # Main Flask application
-│   └── requirements.txt # Backend dependencies
-└── README.md          # This file
+```text
+Image_Manipulator/
+  client/               # React frontend (Vite)
+  server/               # Optional Flask API
+    app.py
+  README.md
 ```
 
-## API Documentation
+## API Documentation (optional backend)
 
-The backend API provides REST endpoints for image manipulation:
+### `POST /api/process-image`
 
-- `POST /api/upload` - Upload an image
-- `POST /api/process` - Process image with specified operations
-- `GET /api/operations` - Get available image operations
+Accepts a multipart form upload and returns a base64 `data:` URL.
+
+- `image` (file)
+- `grid_size` (string/int, default `3`)
+- `rgb_values` (JSON string, e.g. `{ "red": 0, "green": 0, "blue": 0 }`)
+- `kernel_values` (JSON string, e.g. `[[0,-1,0],[-1,5,-1],[0,-1,0]]`)
+- `rgb_modified` (`true`/`false`)
+- `kernel_modified` (`true`/`false`)
+
+Response:
+
+- `image`: `data:image/png;base64,...`
+- plus echo fields like `grid_size`, `rgb_values`, `kernel_values`
 
 ## Contributing
 
