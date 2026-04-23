@@ -3,9 +3,6 @@ type PixelData = Uint8ClampedArray;
 type ImageData2D = RGBColor[][];
 
 export interface ImageProcessor {
-  // Adjust color channels
-  setColor: (imageData: ImageData, colorAmount: number, channel: 'red' | 'green' | 'blue') => ImageData;
-  
   // Image manipulation
   rotate: (imageData: ImageData, steps: number) => ImageData;
   insertImage: (baseImage: ImageData, overlayImage: ImageData, position: [number, number]) => ImageData;
@@ -68,18 +65,6 @@ const flatten = (twoDArray: ImageData2D): Uint8ClampedArray => {
   return result;
 };
 
-// Set color channel to specific value
-const setColor = (imageData: ImageData, colorAmount: number, channel: 'red' | 'green' | 'blue'): ImageData => {
-  const { data, width, height } = imageData;
-  const channelIndex = { red: 0, green: 1, blue: 2 }[channel];
-  
-  for (let i = 0; i < data.length; i += 4) {
-    data[i + channelIndex] = colorAmount;
-  }
-  
-  return new ImageData(data, width, height);
-};
-
 // Rotate image 90 degrees clockwise (1-3 steps)
 const rotate = (imageData: ImageData, steps: number): ImageData => {
   const { width, height } = imageData;
@@ -91,7 +76,11 @@ const rotate = (imageData: ImageData, steps: number): ImageData => {
   }
   
   const rotatedData = flatten(rotated);
-  return new ImageData(rotatedData, steps % 2 === 0 ? width : height, steps % 2 === 0 ? height : width);
+  return new ImageData(
+    rotatedData as unknown as ImageDataArray,
+    steps % 2 === 0 ? width : height,
+    steps % 2 === 0 ? height : width
+  );
 };
 
 // Insert one image into another at specified position
@@ -118,7 +107,7 @@ const insertImage = (baseImage: ImageData, overlayImage: ImageData, [x, y]: [num
     }
   }
   
-  return new ImageData(result, baseWidth, baseHeight);
+  return new ImageData(result as unknown as ImageDataArray, baseWidth, baseHeight);
 };
 
 // Apply convolution kernel to image
@@ -170,11 +159,10 @@ const applyKernel = (imageData: ImageData, kernel: number[][]): ImageData => {
     }
   }
   
-  return new ImageData(result, width, height);
+  return new ImageData(result as unknown as ImageDataArray, width, height);
 };
 
 export const imageProcessor: ImageProcessor = {
-  setColor,
   rotate,
   insertImage,
   applyKernel,

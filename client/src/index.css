@@ -96,8 +96,16 @@
     @apply border-border;
   }
 
+  img,
+  canvas,
+  svg,
+  video {
+    max-width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
     background-image:
       radial-gradient(1200px 600px at 10% 10%, hsl(var(--primary) / 0.14), transparent 60%),
       radial-gradient(900px 500px at 90% 20%, hsl(var(--accent) / 0.14), transparent 55%),

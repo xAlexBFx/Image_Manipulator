@@ -119,13 +119,13 @@ export function ImageUpload({ onImageSelect }: ImageUploadProps) {
       ) : (
         <div className="relative p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 min-w-0">
               <div className="rounded-full p-2 bg-green-100 dark:bg-green-900">
                 <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold">Image Ready</h3>
-                <p className="text-sm text-muted-foreground">{selectedImage.name}</p>
+                <p className="text-sm text-muted-foreground truncate">{selectedImage.name}</p>
               </div>
             </div>
             <Button

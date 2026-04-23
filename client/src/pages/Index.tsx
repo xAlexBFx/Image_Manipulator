@@ -21,12 +21,6 @@ const Index = () => {
   const [gridSize, setGridSize] = useState(3);
   const [kernelValues, setKernelValues] = useState<number[][]>([]);
   const [kernelPipeline, setKernelPipeline] = useState<{ name: string; gridSize: number; kernelValues: number[][] }[]>([]);
-  const [rgbValues, setRgbValues] = useState({
-    red: 0,
-    green: 0,
-    blue: 0
-  });
-  const [rgbModified, setRgbModified] = useState(false);
   const [kernelModified, setKernelModified] = useState(false);
   const [error, setError] = useState<string>('');
   const [processedImage, setProcessedImage] = useState<string | null>(null);
@@ -315,13 +309,6 @@ const Index = () => {
       imageData.height
     );
 
-    // Apply RGB adjustments if modified
-    if (rgbModified) {
-      if (rgbValues.red > 0) result = imageProcessor.setColor(result, rgbValues.red, 'red');
-      if (rgbValues.green > 0) result = imageProcessor.setColor(result, rgbValues.green, 'green');
-      if (rgbValues.blue > 0) result = imageProcessor.setColor(result, rgbValues.blue, 'blue');
-    }
-
     // Apply kernel if modified
     if (kernelModified) {
       if (kernelPipeline.length > 0) {
@@ -339,7 +326,7 @@ const Index = () => {
   };
 
   const startProcessing = async () => {
-    if (!selectedFile || (!rgbModified && !kernelModified)) return;
+    if (!selectedFile || !kernelModified) return;
 
     setProcessingStatus('processing');
     setProgress(0);
@@ -425,17 +412,6 @@ const Index = () => {
       // Enforce min 3 and max 11
       setGridSize(Math.min(Math.max(oddSize, 3), 11));
       setKernelModified(true);
-    }
-  };
-
-  const handleRgbChange = (color: 'red' | 'green' | 'blue', value: string) => {
-    const numValue = parseInt(value);
-    if (!isNaN(numValue) && numValue >= 0 && numValue <= 255) {
-      setRgbValues(prev => ({
-        ...prev,
-        [color]: numValue
-      }));
-      setRgbModified(true);
     }
   };
 
@@ -661,26 +637,27 @@ const Index = () => {
               </div>
             </div>
 
-            <div
-              ref={exampleContainerRef2}
-              className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none"
-              onPointerDown={(e) => {
-                exampleDraggingRef2.current = true;
-                updateExampleSlider2FromClientX(e.clientX);
-              }}
-              onPointerMove={(e) => {
-                if (!exampleDraggingRef2.current) return;
-                updateExampleSlider2FromClientX(e.clientX);
-              }}
-              role="application"
-              aria-label="Cat image before and after advanced filter chain"
-            >
-              <img
-                src="/processed-cat.png"
-                alt="After (Gaussian Blur + Sharpen + XY Edge Detection)"
-                className="absolute inset-0 w-full h-full object-cover"
-                draggable={false}
-              />
+            <div>
+              <div
+                ref={exampleContainerRef2}
+                className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none"
+                onPointerDown={(e) => {
+                  exampleDraggingRef2.current = true;
+                  updateExampleSlider2FromClientX(e.clientX);
+                }}
+                onPointerMove={(e) => {
+                  if (!exampleDraggingRef2.current) return;
+                  updateExampleSlider2FromClientX(e.clientX);
+                }}
+                role="application"
+                aria-label="Cat image before and after advanced filter chain"
+              >
+                <img
+                  src="/processed-cat.png"
+                  alt="After (Gaussian Blur + Sharpen + XY Edge Detection)"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  draggable={false}
+                />
 
               <div
                 className="absolute inset-0"
@@ -709,11 +686,20 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                Before (Original Cat)
+                <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                  Before (Original Cat)
+                </div>
+                <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                  After (Gaussian Blur + Sharpen + XY Edge Detection)
+                </div>
               </div>
-              <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                After (Gaussian Blur + Sharpen + XY Edge Detection)
+              <div className="sm:hidden flex items-start justify-between gap-2 mt-2">
+                <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium">
+                  Before (Original Cat)
+                </div>
+                <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium text-right">
+                  After (Gaussian Blur + Sharpen + XY Edge Detection)
+                </div>
               </div>
             </div>
           </Card>
@@ -734,26 +720,27 @@ const Index = () => {
               </div>
             </div>
 
-            <div
-              ref={exampleContainerRef}
-              className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none"
-              onPointerDown={(e) => {
-                exampleDraggingRef.current = true;
-                updateExampleSliderFromClientX(e.clientX);
-              }}
-              onPointerMove={(e) => {
-                if (!exampleDraggingRef.current) return;
-                updateExampleSliderFromClientX(e.clientX);
-              }}
-              role="application"
-              aria-label="Before and after image comparison"
-            >
-              <img
-                src="/processed-image.png"
-                alt="After (Sharpen + XY Edge Detection)"
-                className="absolute inset-0 w-full h-full object-cover"
-                draggable={false}
-              />
+            <div>
+              <div
+                ref={exampleContainerRef}
+                className="relative w-full aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none"
+                onPointerDown={(e) => {
+                  exampleDraggingRef.current = true;
+                  updateExampleSliderFromClientX(e.clientX);
+                }}
+                onPointerMove={(e) => {
+                  if (!exampleDraggingRef.current) return;
+                  updateExampleSliderFromClientX(e.clientX);
+                }}
+                role="application"
+                aria-label="Before and after image comparison"
+              >
+                <img
+                  src="/processed-image.png"
+                  alt="After (Sharpen + XY Edge Detection)"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  draggable={false}
+                />
 
               <div
                 className="absolute inset-0"
@@ -782,11 +769,20 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                Before (Original)
+                <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                  Before (Original)
+                </div>
+                <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                  After (Sharpen + XY Edge Detection)
+                </div>
               </div>
-              <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                After (Sharpen + XY Edge Detection)
+              <div className="sm:hidden flex items-start justify-between gap-2 mt-2">
+                <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium">
+                  Before (Original)
+                </div>
+                <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium text-right">
+                  After (Sharpen + XY Edge Detection)
+                </div>
               </div>
             </div>
           </Card>
@@ -1120,13 +1116,13 @@ const Index = () => {
                             {kernelPipeline.map((step, idx) => (
                               <div
                                 key={`${step.name}-${idx}`}
-                                className="flex items-center justify-between gap-2 rounded-md border bg-background/60 px-3 py-2"
+                                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-md border bg-background/60 px-3 py-2"
                               >
                                 <div className="min-w-0 text-left">
                                   <div className="truncate text-sm font-medium">{idx + 1}. {step.name}</div>
                                   <div className="text-xs text-muted-foreground">{step.gridSize}x{step.gridSize}</div>
                                 </div>
-                                <div className="flex items-center gap-2 shrink-0">
+                                <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                                   <Button
                                     type="button"
                                     variant="outline"
@@ -1162,47 +1158,7 @@ const Index = () => {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="red" className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div> Red
-                      </Label>
-                      <Input 
-                        id="red"
-                        type="number"
-                        value={rgbValues.red}
-                        onChange={(e) => handleRgbChange('red', e.target.value)}
-                        min={0}
-                        max={255}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="green" className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div> Green
-                      </Label>
-                      <Input 
-                        id="green"
-                        type="number"
-                        value={rgbValues.green}
-                        onChange={(e) => handleRgbChange('green', e.target.value)}
-                        min={0}
-                        max={255}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="blue" className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div> Blue
-                      </Label>
-                      <Input 
-                        id="blue"
-                        type="number"
-                        value={rgbValues.blue}
-                        onChange={(e) => handleRgbChange('blue', e.target.value)}
-                        min={0}
-                        max={255}
-                      />
-                    </div>
-                  </div>
+                  
                 </div>
               </div>
             </Card>
@@ -1245,26 +1201,27 @@ const Index = () => {
                       Your image has been successfully processed with our special algorithm.
                     </p>
                     {processedImage && originalImageUrl && (
-                      <div
-                        ref={resultContainerRef}
-                        className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none shadow-lg mt-6"
-                        onPointerDown={(e) => {
-                          resultDraggingRef.current = true;
-                          updateResultSliderFromClientX(e.clientX);
-                        }}
-                        onPointerMove={(e) => {
-                          if (!resultDraggingRef.current) return;
-                          updateResultSliderFromClientX(e.clientX);
-                        }}
-                        role="application"
-                        aria-label="Original and processed image comparison"
-                      >
-                        <img
-                          src={processedImage}
-                          alt="After (processed)"
-                          className="absolute inset-0 w-full h-full object-contain bg-black/5 dark:bg-black/20"
-                          draggable={false}
-                        />
+                      <div>
+                        <div
+                          ref={resultContainerRef}
+                          className="relative w-full max-w-3xl mx-auto aspect-[16/9] rounded-lg overflow-hidden border bg-muted/20 select-none touch-none shadow-lg mt-6"
+                          onPointerDown={(e) => {
+                            resultDraggingRef.current = true;
+                            updateResultSliderFromClientX(e.clientX);
+                          }}
+                          onPointerMove={(e) => {
+                            if (!resultDraggingRef.current) return;
+                            updateResultSliderFromClientX(e.clientX);
+                          }}
+                          role="application"
+                          aria-label="Original and processed image comparison"
+                        >
+                          <img
+                            src={processedImage}
+                            alt="After (processed)"
+                            className="absolute inset-0 w-full h-full object-contain bg-black/5 dark:bg-black/20"
+                            draggable={false}
+                          />
 
                         <div
                           className="absolute inset-0"
@@ -1293,11 +1250,20 @@ const Index = () => {
                           </div>
                         </div>
 
-                        <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                          Before (Original)
+                          <div className="absolute top-3 left-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                            Before (Original)
+                          </div>
+                          <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium hidden sm:block">
+                            After (Processed)
+                          </div>
                         </div>
-                        <div className="absolute top-3 right-3 px-2 py-1 rounded bg-background/80 border text-xs font-medium">
-                          After (Processed)
+                        <div className="sm:hidden flex items-start justify-between gap-2 mt-2 max-w-3xl mx-auto">
+                          <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium">
+                            Before (Original)
+                          </div>
+                          <div className="px-2 py-1 rounded bg-background/80 border text-xs font-medium text-right">
+                            After (Processed)
+                          </div>
                         </div>
                       </div>
                     )}

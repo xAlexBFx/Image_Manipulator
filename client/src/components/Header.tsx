@@ -18,7 +18,7 @@ export function Header() {
             <h1 className="text-xl font-bold bg-gradient-to-r from-zinc-900 via-zinc-600 to-zinc-900 dark:from-zinc-100 dark:via-zinc-400 dark:to-zinc-100 bg-clip-text text-transparent">
               Image Black Box
             </h1>
-            <p className="text-xs text-muted-foreground">What Does a Deep Learning Model See while Being Trained?</p>
+            <p className="text-xs text-muted-foreground">Vision of a Deep Learning Model</p>
           </div>
         </div>
 
@@ -88,7 +88,7 @@ export function Header() {
               <NavigationMenuItem>
                 <button
                   onClick={scrollToContact}
-                  className={navigationMenuTriggerStyle()}
+                  className={`${navigationMenuTriggerStyle()} hidden md:inline-flex`}
                 >
                   Contact
                 </button>

@@ -13,6 +13,14 @@ interface KernelGridProps {
 export function KernelGrid({ size, onChange, onKernelModified, values }: KernelGridProps) {
   // Limit size between 3 and 10
   const normalizedSize = Math.min(Math.max(size, 0), 10);
+  const cellClassName = cn(
+    'text-center p-0 font-medium border-2 transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20',
+    normalizedSize >= 9
+      ? 'w-8 h-8 text-[10px] sm:w-10 sm:h-10 sm:text-xs'
+      : normalizedSize >= 7
+        ? 'w-10 h-10 text-xs sm:w-12 sm:h-12 sm:text-sm'
+        : 'w-12 h-12 text-sm sm:w-14 sm:h-14 sm:text-sm'
+  );
   
   const [grid, setGrid] = useState<(number | string)[][]>(() => 
     Array(normalizedSize).fill(0).map(() => Array(normalizedSize).fill(''))
@@ -76,29 +84,31 @@ export function KernelGrid({ size, onChange, onKernelModified, values }: KernelG
   };
 
   return (
-    <div className="grid gap-2">
-      <div 
-        className="grid gap-1" 
-        style={{ 
-          gridTemplateColumns: `repeat(${normalizedSize}, minmax(0, 1fr))`,
-          width: 'fit-content'
-        }}
-      >
-        {Array(normalizedSize).fill(0).map((_, rowIndex) => (
-          Array(normalizedSize).fill(0).map((_, colIndex) => (
-            <Input
-              key={`${rowIndex}-${colIndex}`}
-              type="number"
-              value={grid[rowIndex]?.[colIndex] ?? ''}
-              onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
-              onFocus={(e) => e.target.select()}
-              className="w-14 h-14 text-center p-0 text-sm font-medium border-2 transition-all duration-200 hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              placeholder="n"
-              min="-100"
-              max="100"
-            />
-          ))
-        ))}
+    <div className="grid gap-2 max-w-full">
+      <div className="max-w-full overflow-x-auto">
+        <div
+          className={cn('grid mx-auto', normalizedSize >= 9 ? 'gap-0.5' : 'gap-1')}
+          style={{
+            gridTemplateColumns: `repeat(${normalizedSize}, minmax(0, 1fr))`,
+            width: 'fit-content'
+          }}
+        >
+          {Array(normalizedSize).fill(0).map((_, rowIndex) => (
+            Array(normalizedSize).fill(0).map((_, colIndex) => (
+              <Input
+                key={`${rowIndex}-${colIndex}`}
+                type="number"
+                value={grid[rowIndex]?.[colIndex] ?? ''}
+                onChange={(e) => handleInputChange(rowIndex, colIndex, e.target.value)}
+                onFocus={(e) => e.target.select()}
+                className={cellClassName}
+                placeholder="n"
+                min="-100"
+                max="100"
+              />
+            ))
+          ))}
+        </div>
       </div>
     </div>
   );
